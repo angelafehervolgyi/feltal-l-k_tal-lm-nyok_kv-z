@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magyar Feltalálók Kvíz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #FFD700;
+            pointer-events: none;
+            animation: confetti-fall 3s ease-out forwards;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #764ba2;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            height: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .timer {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        .timer.warning {
+            color: #ff9800;
+        }
+
+        .timer.danger {
+            color: #f5576c;
+            animation: pulse 0.5s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .question-counter {
+            text-align: center;
+            color: #764ba2;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        .question {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 20px;
+            border: 3px dashed #667eea;
+            margin-bottom: 30px;
+            min-height: 120px;
+        }
+
+        .question h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            line-height: 1.5;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option {
+            background: white;
+            border: 2px solid #667eea;
+            padding: 15px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .option:hover {
+            transform: translateX(10px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .option.selected {
+            background: #667eea;
+            color: white;
+            border: 2px solid #764ba2;
+            transform: scale(1.02);
+        }
+
+        .option.correct {
+            background: #28a745;
+            color: white;
+            border: 2px solid #20c997;
+        }
+
+        .option.incorrect {
+            background: #f5576c;
+            color: white;
+            border: 2px solid #ff6b6b;
+        }
+
+        .message {
+            text-align: center;
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+            animation: bounce 0.5s ease;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5576c;
+            animation: shake 0.3s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-next:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .btn-restart:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        /* Eredmények oldal */
+        .results-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .results-screen.show {
+            display: block;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .score-number {
+            font-size: 3.5em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .rating {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .rating.genius {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        }
+
+        .rating.researcher {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .rating.apprentice {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .results-details {
+            background: #f5f7fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .results-details p {
+            font-size: 1.1em;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .quiz-screen {
+            display: block;
+        }
+
+        .quiz-screen.hidden {
+            display: none;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: 3px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .start-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .start-screen.show {
+            display: block;
+        }
+
+        .welcome-text {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .option {
+                padding: 12px 15px;
+            }
+
+            .score-number {
+                font-size: 2.5em;
+            }
+
+            .rating {
+                font-size: 1.4em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Kezdőoldal -->
+        <div class="start-screen show">
+            <h1>🔬 Magyar Feltalálók Kvíz 🔬</h1>
+            <p class="subtitle">Ismerd meg a magyar zseniket és találmányaikat!</p>
+            <div class="welcome-text">
+                <p>Készülj fel egy izgalmas utazásra a magyar tudomány és kitalálmányok világában!</p>
+                <p>10 kérdésből álló kvíz vár rád, ahol a legokosabb magyar feltalálók szabnak ki feladatot.</p>
+                <p>Válassz módot és kezdd el!</p>
+            </div>
+
+            <div class="mode-selector">
+                <button class="mode-btn active" onclick="selectMode('normal')">⏱️ Szabad mód</button>
+                <button class="mode-btn" onclick="selectMode('timed')">⏰ 20 másodperces mód</button>
+            </div>
+
+            <button class="btn-restart" onclick="startQuiz()" style="padding: 20px 50px; font-size: 1.2em;">Kvíz Indítása! 🚀</button>
+        </div>
+
+        <!-- Kvíz oldal -->
+        <div class="quiz-screen hidden">
+            <h1>🔬 Magyar Feltalálók Kvíz 🔬</h1>
+            <p class="subtitle" id="modeLabel">Szabad mód</p>
+            
+            <div class="question-counter">
+                <span id="currentQuestion">1</span> / 10
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="timer hidden" id="timerDisplay">⏱️ <span id="timerValue">20</span>s</div>
+
+            <div class="message hidden" id="message"></div>
+
+            <div class="question" id="questionBox">
+                <h2 id="questionText"></h2>
+                <div class="options" id="optionsBox"></div>
+            </div>
+
+            <div class="buttons">
+                <button class="btn-next" id="nextBtn" onclick="nextQuestion()" disabled>➜ Következő kérdés</button>
+            </div>
+        </div>
+
+        <!-- Eredmények oldal -->
+        <div class="results-screen">
+            <h1>🏆 Eredmények 🏆</h1>
+            <p class="subtitle">Gratulálunk, hogy teljesítetted a kvízt!</p>
+            
+            <div class="score-display">
+                <p style="font-size: 1.3em;">Eredményed:</p>
+                <div class="score-number"><span id="finalScore">0</span>/10</div>
+            </div>
+
+            <div class="rating" id="ratingBox"></div>
+
+            <div class="results-details">
+                <p id="ratingMessage"></p>
+                <p id="ratingEmoji" style="font-size: 3em; margin: 20px 0;"></p>
+            </div>
+
+            <button class="btn-restart" onclick="restartQuiz()">🔄 Kvíz Újra</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                invention: 'Rubik-kocka',
+                question: 'Színes kis kocka, minden oldala más – ha kirakod, zseni vagy, ha nem, legalább jól forog a kezed alatt. Vajon ki volt az, aki egyetlen játékkal milliók türelmét edzette?',
+                options: ['Rubik Ernő', 'Bíró László', 'Kandó Kálmán', 'Galamb József'],
+                correct: 'Rubik Ernő'
+            },
+            {
+                invention: 'Golyóstoll',
+                question: 'Nem pacáz, nem maszatol, a papíron vígan szalad. Melyik találmány teszi lehetővé, hogy a gondolatod tintafolt nélkül fusson előre?',
+                options: ['Eötvös Lóránd', 'Bíró László', 'Jedlik Ányos', 'Gábor Dénes'],
+                correct: 'Bíró László'
+            },
+            {
+                invention: 'Holográfia',
+                question: 'Kép a levegőben, mégis látod tisztán – varázslatnak tűnik, pedig tudomány. Ki mutatta meg, hogy a fényből akár térbeli képet is faraghatunk?',
+                options: ['Puskás Tivadar', 'Gábor Dénes', 'Szent-Györgyi Albert', 'Rubik Ernő'],
+                correct: 'Gábor Dénes'
+            },
+            {
+                invention: 'Telefonközpont',
+                question: 'Egy hely, ahol sok hang találkozik: "Kapcsolom!" – és már beszélget is a világ. Melyik találmány tanította meg a telefonokat egymással beszélni?',
+                options: ['Kandó Kálmán', 'Jedlik Ányos', 'Puskás Tivadar', 'Galamb József'],
+                correct: 'Puskás Tivadar'
+            },
+            {
+                invention: 'Dinamó',
+                question: 'Forgasd meg, és fény lesz belőle – mintha a mozgás villanyt varázsolna. Ki volt az, aki rájött, hogyan lesz a pörgésből energia?',
+                options: ['Jedlik Ányos', 'Eötvös Lóránd', 'Bíró László', 'Puskás Tivadar'],
+                correct: 'Jedlik Ányos'
+            },
+            {
+                invention: 'Torziós inga',
+                question: 'Egy finom szál, egy apró mozdulat, és a Föld titkai máris rezdülnek rajta. Melyik eszköz olyan érzékeny, hogy a gravitáció suttogását is meghallja?',
+                options: ['Kandó Kálmán', 'Eötvös Lóránd', 'Gábor Dénes', 'Rubik Ernő'],
+                correct: 'Eötvös Lóránd'
+            },
+            {
+                invention: 'Villamos mozdony',
+                question: 'Nem füstöl, nem pöfög, mégis robog a sínpáron. Ki adott a vonatoknak villanyos lendületet?',
+                options: ['Szent-Györgyi Albert', 'Kandó Kálmán', 'Jedlik Ányos', 'Puskás Tivadar'],
+                correct: 'Kandó Kálmán'
+            },
+            {
+                invention: 'C-vitamin',
+                question: 'Narancsban, paprikában rejtőzik egy apró hős – megvéd a náthától, ha időben jön. Ki fedezte fel ezt a savanykás szupererőt?',
+                options: ['Galamb József', 'Szent-Györgyi Albert', 'Rubik Ernő', 'Eötvös Lóránd'],
+                correct: 'Szent-Györgyi Albert'
+            },
+            {
+                invention: 'Ford T-modell műszaki megoldások',
+                question: 'Autó, ami egyszerű, erős és sokaknak elérhető lett. Ki segített abban, hogy a kocsi ne luxus legyen, hanem a mindennapok része? 🚗',
+                options: ['Kandó Kálmán', 'Galamb József', 'Rubik Ernő', 'Bíró László'],
+                correct: 'Galamb József'
+            },
+            {
+                invention: 'Magyar Feltalálók Összevetése',
+                question: 'Mely feltaláló dolgozott a telefonközponton? 🔊',
+                options: ['Puskás Tivadar', 'Jedlik Ányos', 'Kandó Kálmán', 'Galamb József'],
+                correct: 'Puskás Tivadar'
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedAnswer = null;
+        let isAnswered = false;
+        let quizMode = 'normal'; // 'normal' vagy 'timed'
+        let timerInterval = null;
+        let timeRemaining = 20;
+        let shuffledQuiz = [];
+
+        function selectMode(mode) {
+            quizMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function startQuiz() {
+            // Kérdések összekeverése
+            shuffledQuiz = [...quizData].sort(() => Math.random() - 0.5);
+            currentQuestionIndex = 0;
+            score = 0;
+            selectedAnswer = null;
+            isAnswered = false;
+
+            document.querySelector('.start-screen').classList.remove('show');
+            document.querySelector('.quiz-screen').classList.remove('hidden');
+
+            const modeLabel = document.getElementById('modeLabel');
+            if (quizMode === 'timed') {
+                modeLabel.textContent = '⏰ 20 másodperces mód';
+            } else {
+                modeLabel.textContent = '⏱️ Szabad mód';
+            }
+
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const question = shuffledQuiz[currentQuestionIndex];
+            
+            // Shuffle options
+            const shuffledOptions = [...question.options].sort(() => Math.random() - 0.5);
+            
+            document.getElementById('questionText').textContent = question.question;
+            document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+            document.getElementById('message').innerHTML = '';
+            document.getElementById('message').classList.remove('show', 'hidden', 'success', 'error');
+            document.getElementById('message').classList.add('hidden');
+            document.getElementById('nextBtn').disabled = true;
+            
+            selectedAnswer = null;
+            isAnswered = false;
+
+            const optionsBox = document.getElementById('optionsBox');
+            optionsBox.innerHTML = '';
+            
+            shuffledOptions.forEach(option => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => selectOption(option, optionDiv, question.correct);
+                optionsBox.appendChild(optionDiv);
+            });
+
+            // Progress bar
+            const progress = ((currentQuestionIndex + 1) / shuffledQuiz.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressFill').textContent = `${currentQuestionIndex + 1}/10`;
+
+            // Timer
+            if (quizMode === 'timed') {
+                startTimer();
+                document.getElementById('timerDisplay').classList.remove('hidden');
+            } else {
+                document.getElementById('timerDisplay').classList.add('hidden');
+                if (timerInterval) clearInterval(timerInterval);
+            }
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timeRemaining = 20;
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    if (!isAnswered) {
+                        timeUp();
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const timerValue = document.getElementById('timerValue');
+            timerValue.textContent = timeRemaining;
+
+            const timerDisplay = document.getElementById('timerDisplay');
+            timerDisplay.classList.remove('warning', 'danger');
+
+            if (timeRemaining <= 5) {
+                timerDisplay.classList.add('danger');
+            } else if (timeRemaining <= 10) {
+                timerDisplay.classList.add('warning');
+            }
+        }
+
+        function timeUp() {
+            isAnswered = true;
+            const messageBox = document.getElementById('message');
+            messageBox.innerHTML = '⏰ Az idő lejárt!';
+            messageBox.className = 'message error';
+            messageBox.classList.remove('hidden');
+            document.getElementById('nextBtn').disabled = false;
+            
+            document.querySelectorAll('.option').forEach(option => {
+                option.style.pointerEvents = 'none';
+            });
+        }
+
+        function selectOption(option, element, correct) {
+            if (isAnswered) return;
+
+            // Remove previous selection
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+
+            element.classList.add('selected');
+            selectedAnswer = option;
+
+            // Auto-check after selection
+            setTimeout(() => checkAnswer(option, correct), 300);
+        }
+
+        function checkAnswer(option, correct) {
+            if (isAnswered) return;
+
+            isAnswered = true;
+            if (timerInterval) clearInterval(timerInterval);
+
+            const messageBox = document.getElementById('message');
+            messageBox.classList.remove('hidden');
+
+            const isCorrect = option === correct;
+
+            // Highlight correct and incorrect
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.style.pointerEvents = 'none';
+                if (opt.textContent === correct) {
+                    opt.classList.add('correct');
+                } else if (opt.classList.contains('selected') && !isCorrect) {
+                    opt.classList.add('incorrect');
+                }
+            });
+
+            if (isCorrect) {
+                score++;
+                messageBox.innerHTML = '✅ Gratulálok!';
+                messageBox.className = 'message success';
+            } else {
+                messageBox.innerHTML = '❌ Sajnos helytelen!';
+                messageBox.className = 'message error';
+            }
+
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < shuffledQuiz.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            if (timerInterval) clearInterval(timerInterval);
+
+            document.querySelector('.quiz-screen').classList.add('hidden');
+            document.querySelector('.results-screen').classList.add('show');
+
+            document.getElementById('finalScore').textContent = score;
+
+            let rating = '';
+            let ratingEmoji = '';
+            let ratingMessage = '';
+
+            if (score === 10) {
+                rating = '🌟 ZSENI 🌟';
+                document.getElementById('ratingBox').className = 'rating genius';
+                ratingEmoji = '👨‍🔬✨';
+                ratingMessage = 'Fantasztikus! Még a magyar feltalálók is büszkék lennének rád! Te valóban egy szuperzseni vagy!';
+                createConfetti();
+            } else if (score >= 8) {
+                rating = '🔬 KUTATÓ 🔬';
+                document.getElementById('ratingBox').className = 'rating researcher';
+                ratingEmoji = '👨‍🏫';
+                ratingMessage = 'Kiváló teljesítmény! Számos szakterületen helytelen válaszod volt, de az alapok megvannak!';
+            } else if (score >= 5) {
+                rating = '📚 TANONC 📚';
+                document.getElementById('ratingBox').className = 'rating apprentice';
+                ratingEmoji = '👨‍🎓';
+                ratingMessage = 'Jó kezdet! A magyar feltalálók világában még sok tanulnivalód van, de nem adod fel!';
+            } else {
+                rating = '🌱 KEZDŐ 🌱';
+                document.getElementById('ratingBox').className = 'rating apprentice';
+                ratingEmoji = '🌱';
+                ratingMessage = 'Még sok dolgot tanulhatsz a magyar feltalálókról. Próbáld újra!';
+            }
+
+            document.getElementById('ratingBox').innerHTML = rating;
+            document.getElementById('ratingEmoji').textContent = ratingEmoji;
+            document.getElementById('ratingMessage').textContent = ratingMessage;
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * window.innerWidth + 'px';
+                confetti.style.backgroundColor = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'][Math.floor(Math.random() * 5)];
+                confetti.style.animationDelay = Math.random() * 0.3 + 's';
+                document.body.appendChild(confetti);
+
+                setTimeout(() => confetti.remove(), 3300);
+            }
+        }
+
+        function restartQuiz() {
+            document.querySelector('.results-screen').classList.remove('show');
+            document.querySelector('.start-screen').classList.add('show');
+            document.querySelector('.quiz-screen').classList.add('hidden');
+            quizMode = 'normal';
+            selectedAnswer = null;
+            isAnswered = false;
+            currentQuestionIndex = 0;
+            score = 0;
+            
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.mode-btn').classList.add('active');
+        }
+    </script>
+</body>
+</html>
